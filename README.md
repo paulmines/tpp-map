@@ -27,4 +27,17 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
 
 
-## test
+## Deploy project to GithubPage
+
+```bash
+# Install angular-cli-ghpages
+sudo npm install -g angular-cli-ghpages
+
+# Build Your Angular Project for Production
+sudo ng build --configuration production --base-href "/tpp-map/"
+
+# Deploy to GitHub Pages
+sudo npx angular-cli-ghpages --dir=dist/tpp-map/browser
+```
+
+
