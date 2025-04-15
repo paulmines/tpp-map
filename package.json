@@ -4,10 +4,11 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build --configuration production --base-href \"/tpp-map/\"",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:tpp-map": "node dist/tpp-map/server/server.mjs"
+    "serve:ssr:tpp-map": "node dist/tpp-map/server/server.mjs",
+    "deploy": "npm run build && npx angular-cli-ghpages --dir=dist/tpp-map/browser"
   },
   "private": true,
   "dependencies": {
