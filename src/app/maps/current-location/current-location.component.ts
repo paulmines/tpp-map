@@ -15,17 +15,18 @@ import { Map, latLngBounds, LatLngBounds, Icon, latLng } from 'leaflet';
 })
 export class CurrentLocationComponent extends MapBase implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
-  private locationSubscription?: Subscription;
-  private currentMarker?: L.Marker;
+  // private locationSubscription?: Subscription;
+  // private currentMarker?: L.Marker;
 
   constructor(
     protected override mapConfig: MapConfigService,
-    private locationService: LocationService
+    protected override locationService: LocationService
   ) {
-    super(mapConfig);
+    super(mapConfig, locationService);
   }
 
   ngAfterViewInit(): void {
+    console.log("override ngAfterViewInit");
     this.mapElement = this.mapContainer;
     this.initializeMap();
     this.watchLocation();
@@ -33,56 +34,56 @@ export class CurrentLocationComponent extends MapBase implements AfterViewInit, 
     // this.addMarker(14.0779394, 121.1425760, "<b>You're Here!</b>");
   }
 
-  ngOnDestroy(): void {
-    this.locationSubscription?.unsubscribe();
-  }
+  // override ngOnDestroy(): void {
+  //   this.locationSubscription?.unsubscribe();
+  // }
 
-  private watchLocation(): void {
-    this.locationSubscription = this.locationService.watchPosition().subscribe({
-      next: (position) => {
-        const positionLatLng = latLng(position.coords.latitude, position.coords.longitude);
-        console.log("Current Location:", positionLatLng);
+  // private watchLocation(): void {
+  //   this.locationSubscription = this.locationService.watchPosition().subscribe({
+  //     next: (position) => {
+  //       const positionLatLng = latLng(position.coords.latitude, position.coords.longitude);
+  //       console.log("Current Location:", positionLatLng);
         
-        // Remove existing marker if any
-        if (this.currentMarker) {
-          this.getMarkerLayer().removeLayer(this.currentMarker);
-        }
+  //       // Remove existing marker if any
+  //       if (this.currentMarker) {
+  //         this.getMarkerLayer().removeLayer(this.currentMarker);
+  //       }
 
-        // Add marker with popup
-        this.addMarker(
-          position.coords.latitude,
-          position.coords.longitude,
-          "<b>You're Here!</b>"
-        );
+  //       // Add marker with popup
+  //       this.addMarker(
+  //         position.coords.latitude,
+  //         position.coords.longitude,
+  //         "<b>You're Here!</b>"
+  //       );
 
-        // Center map on current location
-        this.map.setView(positionLatLng, 15);
-      },
-      error: (error) => {
-        console.error('Error getting location:', error);
-        // Set default view if location is unavailable
-        const defaultCenter = this.mapConfig.getDefaultCenter();
-        this.map.setView(defaultCenter, this.mapConfig.getInitialZoom());
-      }
-    });
-  }
+  //       // Center map on current location
+  //       this.map.setView(positionLatLng, 15);
+  //     },
+  //     error: (error) => {
+  //       console.error('Error getting location:', error);
+  //       // Set default view if location is unavailable
+  //       const defaultCenter = this.mapConfig.getDefaultCenter();
+  //       this.map.setView(defaultCenter, this.mapConfig.getInitialZoom());
+  //     }
+  //   });
+  // }
 
-  addMarker(lat: number, lng: number, popupText: string): void {
-    // Create custom icon
-    const customIcon = new Icon({
-      iconUrl: 'assets/marker-icon.png',
-      iconRetinaUrl: 'assets/marker-icon-2x.png',
-      shadowUrl: 'assets/marker-shadow.png',
-      iconSize: [25, 41],     // size of the icon
-      iconAnchor: [12, 41],   // point of the icon which will correspond to marker's location
-      popupAnchor: [1, -34],  // point from which the popup should open relative to the iconAnchor
-      shadowSize: [41, 41]    // size of the shadow
-    });
+  // addMarker(lat: number, lng: number, popupText: string): void {
+  //   // Create custom icon
+  //   const customIcon = new Icon({
+  //     iconUrl: 'assets/marker-icon.png',
+  //     iconRetinaUrl: 'assets/marker-icon-2x.png',
+  //     shadowUrl: 'assets/marker-shadow.png',
+  //     iconSize: [25, 41],     // size of the icon
+  //     iconAnchor: [12, 41],   // point of the icon which will correspond to marker's location
+  //     popupAnchor: [1, -34],  // point from which the popup should open relative to the iconAnchor
+  //     shadowSize: [41, 41]    // size of the shadow
+  //   });
 
-    // Add marker to the layer
-    const marker = L.marker([lat, lng], { icon: customIcon });
-    marker.bindPopup(popupText);
-    this.getMarkerLayer().addLayer(marker);
-    this.currentMarker = marker;
-  }
+  //   // Add marker to the layer
+  //   const marker = L.marker([lat, lng], { icon: customIcon });
+  //   marker.bindPopup(popupText);
+  //   this.getMarkerLayer().addLayer(marker);
+  //   this.currentMarker = marker;
+  // }
 } 

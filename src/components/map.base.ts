@@ -1,18 +1,33 @@
-import { ElementRef, ViewChild, Injectable } from '@angular/core';
-import { Map as LeafletMap, LatLngBounds, LayerGroup, latLngBounds, tileLayer, layerGroup } from 'leaflet';
+import { ElementRef, ViewChild, Injectable, OnDestroy, AfterViewInit } from '@angular/core';
+import { Map as LeafletMap, LatLngBounds, LayerGroup, latLngBounds, tileLayer, layerGroup, Marker, latLng, Icon, marker, circleMarker, CircleMarker } from 'leaflet';
 import { MapConfigService } from '../services/map-config.service';
+import { LocationService } from '../services/location.service';
+import { Subscription } from 'rxjs';
 
 @Injectable()
-export abstract class MapBase {
+export abstract class MapBase implements OnDestroy {
   protected map!: LeafletMap;
   protected markerLayer!: LayerGroup;
   protected mapElement!: ElementRef;
 //   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
     // mapContainer!: ElementRef;
+  protected locationSubscription?: Subscription;
+  protected currentMarker?: Marker | CircleMarker;
 
   constructor(
-    protected mapConfig: MapConfigService
+    protected mapConfig: MapConfigService,
+    protected locationService: LocationService
   ) {
+  } 
+
+  ngOnDestroy(): void {
+    console.log("ngOnDestroy");
+    if (this.locationSubscription) {
+      this.locationSubscription.unsubscribe();
+    }
+    if (this.map) {
+      this.map.remove();
+    }
   }
 
   protected initializeMap(): void {
@@ -35,6 +50,79 @@ export abstract class MapBase {
     this.setInitialView();
     this.setupTileLayer();
     this.setupMarkerLayer();
+  }
+
+  protected watchLocation(): void {
+    this.locationSubscription = this.locationService.watchPosition().subscribe({
+      next: (position) => {
+        const positionLatLng = latLng(position.coords.latitude, position.coords.longitude);
+        console.log("Current Location:", positionLatLng);
+        
+        // Remove existing marker if any
+        if (this.currentMarker) {
+          this.getMarkerLayer().removeLayer(this.currentMarker);
+        }
+
+        // Add marker with popup
+        this.addMarker(
+          position.coords.latitude,
+          position.coords.longitude,
+          "<b>You're Here!</b>"
+        );
+
+        // Center map on current location
+        this.map.setView(positionLatLng, 15);
+      },
+      error: (error) => {
+        console.error('Error getting location:', error);
+        // Set default view if location is unavailable
+        const defaultCenter = this.mapConfig.getDefaultCenter();
+        this.map.setView(defaultCenter, this.mapConfig.getInitialZoom());
+      }
+    });
+  }
+
+  private addMarker(lat: number, lng: number, popupText: string): void {
+    const circle = circleMarker([lat, lng], {
+      radius: 12,
+      fillColor: '#120596',
+      color: '#ffffff',
+      weight: 4,
+      opacity: 1,
+      fillOpacity: 0.9
+    });
+    circle.bindPopup(popupText);
+    this.getMarkerLayer().addLayer(circle);
+    this.currentMarker = circle;
+
+    // Add pulsing circle
+    const pulse = circleMarker([lat, lng], {
+      radius: 12,
+      fillColor: '#3388ff',
+      color: '#6699ff',
+      weight: 2,
+      opacity: 0.3,
+      fillOpacity: 0
+    });
+    this.getMarkerLayer().addLayer(pulse);
+
+    // Animate the pulse
+    let radius = 12;
+    const animate = () => {
+      radius += 0.5;
+      pulse.setRadius(radius);
+      pulse.setStyle({ opacity: 0.3 - (radius - 12) * 0.02 });
+      
+      if (radius < 30) {
+        setTimeout(() => requestAnimationFrame(animate), 20);
+      } else {
+        radius = 12;
+        pulse.setRadius(radius);
+        pulse.setStyle({ opacity: 0.3 });
+        setTimeout(() => requestAnimationFrame(animate), 20);
+      }
+    };
+    animate();
   }
 
   protected getDefaultBounds(): LatLngBounds {
@@ -89,11 +177,5 @@ export abstract class MapBase {
 
   public getMarkerLayer(): LayerGroup {
     return this.markerLayer;
-  }
-
-  public destroy(): void {
-    if (this.map) {
-      this.map.remove();
-    }
   }
 } 
