@@ -26,7 +26,6 @@ export class CurrentLocationComponent extends MapBase implements AfterViewInit, 
   }
 
   ngAfterViewInit(): void {
-    console.log("override ngAfterViewInit");
     this.mapElement = this.mapContainer;
     this.initializeMap();
     this.watchLocation();

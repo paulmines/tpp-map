@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -8,8 +9,7 @@ export class MapConfigService {
   private readonly defaultZoom = 19;
   private readonly minZoom = 17;
   private readonly maxZoom = 21;
-//   private readonly tileLayerUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-  private readonly tileLayerUrl = '/assets/maps/tiles-google/{z}/{x}/{y}.png';
+  private readonly tileLayerUrl = environment.tileLayerUrl;
   private readonly tileLayerAttribution = '&copy; <h1>TPP Map</h1>';
 
   getDefaultBounds(): { southWest: [number, number]; northEast: [number, number] } {
