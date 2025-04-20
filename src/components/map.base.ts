@@ -13,6 +13,8 @@ export abstract class MapBase implements OnDestroy {
     // mapContainer!: ElementRef;
   protected locationSubscription?: Subscription;
   protected currentMarker?: Marker | CircleMarker;
+  private pulseAnimation?: number;
+  private pulseMarker?: CircleMarker;
 
   constructor(
     protected mapConfig: MapConfigService,
@@ -83,6 +85,14 @@ export abstract class MapBase implements OnDestroy {
   }
 
   private addMarker(lat: number, lng: number, popupText: string): void {
+    // Clean up previous animation and marker
+    if (this.pulseAnimation) {
+      cancelAnimationFrame(this.pulseAnimation);
+    }
+    if (this.pulseMarker) {
+      this.getMarkerLayer().removeLayer(this.pulseMarker);
+    }
+
     const circle = circleMarker([lat, lng], {
       radius: 12,
       fillColor: '#120596',
@@ -96,7 +106,7 @@ export abstract class MapBase implements OnDestroy {
     this.currentMarker = circle;
 
     // Add pulsing circle
-    const pulse = circleMarker([lat, lng], {
+    this.pulseMarker = circleMarker([lat, lng], {
       radius: 12,
       fillColor: '#3388ff',
       color: '#6699ff',
@@ -104,25 +114,28 @@ export abstract class MapBase implements OnDestroy {
       opacity: 0.3,
       fillOpacity: 0
     });
-    this.getMarkerLayer().addLayer(pulse);
+    this.getMarkerLayer().addLayer(this.pulseMarker);
+    // this.pulseMarker = pulse;
 
     // Animate the pulse
     let radius = 12;
     const animate = () => {
+      if (!this.pulseMarker) return;
+      
       radius += 0.5;
-      pulse.setRadius(radius);
-      pulse.setStyle({ opacity: 0.3 - (radius - 12) * 0.02 });
+      this.pulseMarker.setRadius(radius);
+      this.pulseMarker.setStyle({ opacity: 0.3 - (radius - 12) * 0.02 });
       
       if (radius < 30) {
-        setTimeout(() => requestAnimationFrame(animate), 20);
+        this.pulseAnimation = requestAnimationFrame(animate);
       } else {
         radius = 12;
-        pulse.setRadius(radius);
-        pulse.setStyle({ opacity: 0.3 });
-        setTimeout(() => requestAnimationFrame(animate), 20);
+        this.pulseMarker.setRadius(radius);
+        this.pulseMarker.setStyle({ opacity: 0.3 });
+        this.pulseAnimation = requestAnimationFrame(animate);
       }
     };
-    animate();
+    this.pulseAnimation = requestAnimationFrame(animate);
   }
 
   protected getDefaultBounds(): LatLngBounds {
