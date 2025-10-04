@@ -28,7 +28,7 @@ export class CurrentLocationComponent extends MapBase implements AfterViewInit, 
   ngAfterViewInit(): void {
     this.mapElement = this.mapContainer;
     this.initializeMap();
-    this.watchLocation();
+    this.watchLocationAutoCenter();
 
     // this.addMarker(14.0779394, 121.1425760, "<b>You're Here!</b>");
   }

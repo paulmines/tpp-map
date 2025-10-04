@@ -72,6 +72,34 @@ export abstract class MapBase implements OnDestroy {
           "<b>You're Here!</b>"
         );
 
+      },
+      error: (error) => {
+        console.error('Error getting location:', error);
+        // Set default view if location is unavailable
+        const defaultCenter = this.mapConfig.getDefaultCenter();
+        this.map.setView(defaultCenter, this.mapConfig.getInitialZoom());
+      }
+    });
+  }
+
+  protected watchLocationAutoCenter(): void {
+    this.locationSubscription = this.locationService.watchPosition().subscribe({
+      next: (position) => {
+        const positionLatLng = latLng(position.coords.latitude, position.coords.longitude);
+        console.log("Current Location:", positionLatLng);
+        
+        // Remove existing marker if any
+        if (this.currentMarker) {
+          this.getMarkerLayer().removeLayer(this.currentMarker);
+        }
+
+        // Add marker with popup
+        this.addMarker(
+          position.coords.latitude,
+          position.coords.longitude,
+          "<b>You're Here!</b>"
+        );
+
         // Center map on current location
         this.map.setView(positionLatLng, 15);
       },
@@ -143,6 +171,44 @@ export abstract class MapBase implements OnDestroy {
     return latLngBounds(bounds.southWest, bounds.northEast);
   }
 
+  protected setRedMarker(lat: number, lng: number, popupText: string): void {
+    // modified by red marker in below from circle.
+    // const circle = circleMarker([lat, lng], {
+    //   radius: 12,
+    //   fillColor: '#960505ff',
+    //   color: '#ffffff',
+    //   weight: 4,
+    //   opacity: 1,
+    //   fillOpacity: 0.9
+    // });
+    // circle.bindPopup(popupText);
+    // this.getMarkerLayer().addLayer(circle);
+    // this.currentMarker = circle;
+
+    // Create custom red marker icon similar to Google Maps destination pin
+    const redIcon = new Icon({
+      iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="24" height="36">
+          <path fill="#EA4335" stroke="#FFFFFF" stroke-width="1.5" 
+            d="M12 0C7.03 0 3 4.03 3 9c0 6.75 9 18 9 18s9-11.25 9-18c0-4.97-4.03-9-9-9z"/>
+          <circle cx="12" cy="9" r="3.5" fill="#FFFFFF"/>
+        </svg>
+      `),
+      iconSize: [34, 46],
+      iconAnchor: [12, 36],
+      popupAnchor: [0, -36]
+    });
+
+    const redMarkerInstance = marker([lat, lng], {
+      icon: redIcon
+    });
+    
+    redMarkerInstance.bindPopup(popupText);
+    this.getMarkerLayer().addLayer(redMarkerInstance);
+    // this.redMarker = redMarkerInstance;
+    
+  }
+
   protected getMinZoom(): number {
     return this.mapConfig.getMinZoom();
   }
@@ -190,5 +256,9 @@ export abstract class MapBase implements OnDestroy {
 
   public getMarkerLayer(): LayerGroup {
     return this.markerLayer;
+  }
+
+  protected setView(lat: number, lng: number): void {
+    this.map.setView([lat, lng], this.getInitialZoom());
   }
 } 
