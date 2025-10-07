@@ -9,11 +9,11 @@
 <div #mapContainer class="map-container">
     <div class="map-frame">
       <div id="map"></div>
-      <button id="get-direction" class="map-action-button" (click)="onButtonClick()">
+      <button *ngIf="!showStartButton" id="get-direction" class="map-action-button" (click)="onButtonClick()">
         Get Directions
       </button>
-      <!-- <button id="start" class="map-action-button" (click)="onStartClick()">
-        Get Directions
+      <button *ngIf="showStartButton" id="start" class="map-action-button" (click)="onStartClick()">
+        Start
       </button>
-    </div> -->
+    </div>
 </div>

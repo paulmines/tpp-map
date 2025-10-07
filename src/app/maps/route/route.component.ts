@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, ElementRef, ViewChild, OnDestroy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { LeafletModule } from '@bluehalo/ngx-leaflet';
+import { CommonModule } from '@angular/common';
 
 import { MapBase } from '../../../components/map.base';
 import { MapConfigService } from '../../../services/map-config.service';
@@ -9,7 +10,7 @@ import { LocationService } from '../../../services/location.service';
 @Component({
   selector: 'app-route',
   standalone: true,
-  imports: [LeafletModule],
+  imports: [LeafletModule, CommonModule],
   templateUrl: './route.component.html',
   styleUrl: './route.component.scss'
 })
@@ -20,10 +21,12 @@ export class RouteComponent extends MapBase implements AfterViewInit, OnDestroy 
   coordinates: string = '';
   destinationLatitude: number = 0;
   destinationLongitude: number = 0;
+  showStartButton: boolean = false;
 
   constructor(private route: ActivatedRoute,
         protected override mapConfig: MapConfigService,
-        protected override locationService: LocationService
+        protected override locationService: LocationService,
+        private router: Router
   ) {
     super(mapConfig, locationService);
   }
@@ -52,11 +55,14 @@ export class RouteComponent extends MapBase implements AfterViewInit, OnDestroy 
     console.log('Destination clicked!');
     // Example: Open navigation app, show route, etc.
     this.routing();
+    this.showStartButton = true;
   }
 
     onStartClick(): void {
     // Add your button click logic here
     console.log('Start clicked!');
+    this.showStartButton = false;
+    this.router.navigate(['/maps/start-route']);
   }
 
 }
