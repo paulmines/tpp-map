@@ -3,6 +3,8 @@ import { Map as LeafletMap, LatLngBounds, LayerGroup, latLngBounds, tileLayer, l
 import { MapConfigService } from '../services/map-config.service';
 import { LocationService } from '../services/location.service';
 import { Subscription } from 'rxjs';
+import * as L from 'leaflet';
+import 'leaflet-routing-machine';
 
 @Injectable()
 export abstract class MapBase implements OnDestroy {
@@ -15,6 +17,9 @@ export abstract class MapBase implements OnDestroy {
   protected currentMarker?: Marker | CircleMarker;
   private pulseAnimation?: number;
   private pulseMarker?: CircleMarker;
+  private routingControl: any; // Store the routing control instance
+  private gpsWaypoint: L.LatLng = L.latLng(14.078302653244693, 121.1424087146165);
+  private destinationWaypoint: L.LatLng = L.latLng(14.073384687936823, 121.14390748782859);
 
   constructor(
     protected mapConfig: MapConfigService,
@@ -71,6 +76,9 @@ export abstract class MapBase implements OnDestroy {
           position.coords.longitude,
           "<b>You're Here!</b>"
         );
+
+        // update local variable with current user coordinates
+        this.setCurrentCoordinates(position.coords.latitude, position.coords.longitude);
 
       },
       error: (error) => {
@@ -209,6 +217,22 @@ export abstract class MapBase implements OnDestroy {
     
   }
 
+  routing(): void {
+    this.routingControl = L.Routing.control({
+      waypoints: [
+        this.gpsWaypoint,
+        this.destinationWaypoint,
+      ],
+      routeWhileDragging: false,
+      router: new L.Routing.OSRMv1({
+        // serviceUrl: 'http://127.0.0.1:5001/route/v1',
+        serviceUrl: 'http://router.project-osrm.org/route/v1',
+        profile: 'bicycle'
+      }),
+      show: false, // Do not show the route details
+    }).addTo(this.map);
+  }
+
   protected getMinZoom(): number {
     return this.mapConfig.getMinZoom();
   }
@@ -260,5 +284,13 @@ export abstract class MapBase implements OnDestroy {
 
   protected setView(lat: number, lng: number): void {
     this.map.setView([lat, lng], this.getInitialZoom());
+  }
+
+  private setCurrentCoordinates(lat: number, lng: number): void {
+    this.gpsWaypoint = L.latLng(lat, lng);
+  }
+
+  protected setDestinationCoordinates(lat: number, lng: number): void {
+    this.destinationWaypoint = L.latLng(lat, lng);
   }
 } 

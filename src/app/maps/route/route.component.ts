@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, ViewChild, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { LeafletModule } from '@bluehalo/ngx-leaflet';
 
 import { MapBase } from '../../../components/map.base';
 import { MapConfigService } from '../../../services/map-config.service';
@@ -8,7 +9,7 @@ import { LocationService } from '../../../services/location.service';
 @Component({
   selector: 'app-route',
   standalone: true,
-  imports: [],
+  imports: [LeafletModule],
   templateUrl: './route.component.html',
   styleUrl: './route.component.scss'
 })
@@ -17,8 +18,8 @@ export class RouteComponent extends MapBase implements AfterViewInit, OnDestroy 
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
 
   coordinates: string = '';
-  latitude: number = 0;
-  longitude: number = 0;
+  destinationLatitude: number = 0;
+  destinationLongitude: number = 0;
 
   constructor(private route: ActivatedRoute,
         protected override mapConfig: MapConfigService,
@@ -32,16 +33,30 @@ export class RouteComponent extends MapBase implements AfterViewInit, OnDestroy 
 
         // Split coordinates by comma
     const coordArray = this.coordinates.split(',');
-    this.latitude = parseFloat(coordArray[0]) || 0;
-    this.longitude = parseFloat(coordArray[1]) || 0;
+    this.destinationLatitude = parseFloat(coordArray[0]) || 0;
+    this.destinationLongitude = parseFloat(coordArray[1]) || 0;
+
+    this.setDestinationCoordinates(this.destinationLatitude, this.destinationLongitude);
   }
 
   ngAfterViewInit(): void {
     this.mapElement = this.mapContainer;
     this.initializeMap();
     this.watchLocation();
-    this.setRedMarker(this.latitude, this.longitude,  "<b>Your destination!</b>");
-    this.setView(this.latitude, this.longitude);
+    this.setRedMarker(this.destinationLatitude, this.destinationLongitude,  "<b>Your destination!</b>");
+    this.setView(this.destinationLatitude, this.destinationLongitude);
+  }
+
+  onButtonClick(): void {
+    // Add your button click logic here
+    console.log('Destination clicked!');
+    // Example: Open navigation app, show route, etc.
+    this.routing();
+  }
+
+    onStartClick(): void {
+    // Add your button click logic here
+    console.log('Start clicked!');
   }
 
 }
