@@ -9,13 +9,15 @@
 
   <!-- Leaflet core -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-  </script>
 
   <!-- Leaflet Routing Machine -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css">
-  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js">
-  </script>  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"> 
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+  <script>
+    window.L = L; // explicitly expose Leaflet to global scope
+  </script>
 <link rel="stylesheet" href="styles-T36R6BVK.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-T36R6BVK.css"></noscript></head>
 <body>
   <app-root></app-root>
