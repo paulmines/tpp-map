@@ -39,6 +39,8 @@ export class RouteComponent extends MapBase implements AfterViewInit, OnDestroy 
     this.destinationLatitude = parseFloat(coordArray[0]) || 0;
     this.destinationLongitude = parseFloat(coordArray[1]) || 0;
 
+    console.log(`[Lattude, Longitude]: [${this.destinationLatitude}, ${this.destinationLongitude}]`);
+
     this.setDestinationCoordinates(this.destinationLatitude, this.destinationLongitude);
   }
 
@@ -62,7 +64,11 @@ export class RouteComponent extends MapBase implements AfterViewInit, OnDestroy 
     // Add your button click logic here
     console.log('Start clicked!');
     this.showStartButton = false;
-    this.router.navigate(['/maps/start-route']);
+    this.router.navigate([this.composeStartRoutePath()]);
+  }
+
+  composeStartRoutePath(): string {
+    return `'/maps/start-route${this.destinationLatitude},${this.destinationLongitude}'`
   }
 
 }

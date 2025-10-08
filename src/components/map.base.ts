@@ -249,6 +249,12 @@ export abstract class MapBase implements OnDestroy {
   }
 
   routing(): void {
+
+    if (!L.Routing) {
+      console.error('Leaflet Routing Machine not loaded');
+      return;
+    }
+
     this.routingControl = L.Routing.control({
       waypoints: [
         this.gpsWaypoint,
@@ -257,8 +263,8 @@ export abstract class MapBase implements OnDestroy {
       routeWhileDragging: false,
       router: new L.Routing.OSRMv1({
         // serviceUrl: 'http://127.0.0.1:5001/route/v1',
-        serviceUrl: 'http://router.project-osrm.org/route/v1',
-        profile: 'bicycle'
+        serviceUrl: 'https://router.project-osrm.org/route/v1',
+        profile: 'car'
       }),
       show: false, // Do not show the route details
     }).addTo(this.map);
