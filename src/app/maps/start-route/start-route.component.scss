@@ -1,0 +1,7 @@
+.map-container {
+  pointer-events: none; // Disables all mouse/touch events
+  
+  #map {
+    pointer-events: none;
+  }
+}

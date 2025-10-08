@@ -120,6 +120,37 @@ export abstract class MapBase implements OnDestroy {
     });
   }
 
+    protected watchStartMovement(): void {
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          this.map.setView([latitude, longitude], this.getDefaultStartZoomLevel());
+
+          // Update the user coordnates waypoint to the user's current locatione);
+          this.setCurrentCoordinates(latitude, longitude);
+
+          // Recalculate the route with the updated waypoints
+          this.routing();
+
+          const angle = this.calculateAngleToWaypoint(latitude, longitude, this.destinationWaypoint.lat, this.destinationWaypoint.lng);
+          console.log(`Current Position: [${latitude}, ${longitude}], GPS Waypoint: [${this.gpsWaypoint.lat}, ${this.gpsWaypoint.lng}], Angle: ${angle}`);
+          this.rotateMap(angle);
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 0,
+          timeout: 5000
+        }
+      );
+    } else {
+      console.error('Geolocation is not supported by this browser.');
+    }
+  }
+
   private addMarker(lat: number, lng: number, popupText: string): void {
     // Clean up previous animation and marker
     if (this.pulseAnimation) {
@@ -233,6 +264,29 @@ export abstract class MapBase implements OnDestroy {
     }).addTo(this.map);
   }
 
+  private calculateAngleToWaypoint(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const dLon = lon2 - lon1;
+    const y = Math.sin(dLon) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+    const angle = Math.atan2(y, x) * (180 / Math.PI);
+    return (angle + 360) % 360; // Normalize to 0-360 degrees
+  }
+
+  private rotateMap(angle: number): void {
+    const mapContainer = this.mapElement.nativeElement;
+    mapContainer.style.transform = `rotate(${-angle}deg)`;
+  }
+
+  protected disableInteractions(): void {
+    // Disable interactions after map is created
+    this.getMap().dragging.disable();
+    this.getMap().touchZoom.disable();
+    this.getMap().doubleClickZoom.disable();
+    this.getMap().scrollWheelZoom.disable();
+    this.getMap().boxZoom.disable();
+    this.getMap().zoomControl.remove();
+  }
+
   protected getMinZoom(): number {
     return this.mapConfig.getMinZoom();
   }
@@ -293,4 +347,9 @@ export abstract class MapBase implements OnDestroy {
   protected setDestinationCoordinates(lat: number, lng: number): void {
     this.destinationWaypoint = L.latLng(lat, lng);
   }
+
+  public getDefaultStartZoomLevel(): number {
+    return this.mapConfig.getDefaultStartZoomLevel();
+  }
+  
 } 

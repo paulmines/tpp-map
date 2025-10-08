@@ -46,4 +46,8 @@ export class MapConfigService {
   getTileLayerAttribution(): string {
     return this.tileLayerAttribution;
   }
+
+  getDefaultStartZoomLevel(): number {
+    return this.maxZoom;
+  }
 } 
