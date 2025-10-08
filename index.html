@@ -1,13 +1,31 @@
+```html
 <!doctype html>
 <html lang="en" data-critters-container>
-<head>
-  <meta charset="utf-8">
-  <title>TppMap</title>
-  <base href="/tpp-map/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-<link rel="stylesheet" href="styles-T36R6BVK.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-T36R6BVK.css"></noscript></head>
-<body>
-  <app-root></app-root>
-<script src="polyfills-FFHMD2TL.js" type="module"></script><script src="scripts-C6PLTEYH.js" defer></script><script src="main-QDOO52M4.js" type="module"></script></body>
+  <head>
+    <meta charset="utf-8">
+    <title>TPP Map</title>
+    <base href="/tpp-map/">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- ✅ Leaflet core CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- ✅ Leaflet Routing Machine (LRM) CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css">
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+    <!-- ✅ Explicitly expose Leaflet to global scope for Angular -->
+    <script>
+      window.L = L;
+    </script>
+
+    <!-- Angular will inject its compiled JS files below -->
+  <link rel="stylesheet" href="styles-T36R6BVK.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-T36R6BVK.css"></noscript></head>
+
+  <body>
+    <app-root></app-root>
+  <script src="polyfills-FFHMD2TL.js" type="module"></script><script src="scripts-C6PLTEYH.js" defer></script><script src="main-QDOO52M4.js" type="module"></script></body>
 </html>
+```
