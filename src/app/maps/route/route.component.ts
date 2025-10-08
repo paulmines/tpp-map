@@ -50,7 +50,7 @@ export class RouteComponent extends MapBase implements AfterViewInit, OnDestroy 
     this.setView(this.destinationLatitude, this.destinationLongitude);
   }
 
-  onButtonClick(): void {
+  onDestinationnClick(): void {
     // Add your button click logic here
     console.log('Destination clicked!');
     // Example: Open navigation app, show route, etc.
