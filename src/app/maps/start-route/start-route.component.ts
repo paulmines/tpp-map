@@ -44,8 +44,8 @@ export class StartRouteComponent extends MapBase implements AfterViewInit, OnDes
     this.mapElement = this.mapContainer;
     this.initializeMap();
     this.disableInteractions();
-    this.watchStartMovement();
     this.setRedMarker(this.destinationLatitude, this.destinationLongitude,  "<b>Your destination!</b>");
+    this.watchStartMovement();
   }
 
 }
