@@ -23,16 +23,17 @@ export class RouteComponent extends MapBase implements AfterViewInit, OnDestroy 
   destinationLongitude: number = 0;
   showStartButton: boolean = false;
 
-  constructor(private route: ActivatedRoute,
+  constructor(
         protected override mapConfig: MapConfigService,
         protected override locationService: LocationService,
-        private router: Router
+        private router: Router,
+        private aroute: ActivatedRoute
   ) {
     super(mapConfig, locationService);
   }
 
   ngOnInit() {
-    this.coordinates = this.route.snapshot.paramMap.get('coordinates') || '';
+    this.coordinates = this.aroute.snapshot.paramMap.get('coordinates') || '';
 
         // Split coordinates by comma
     const coordArray = this.coordinates.split(',');
@@ -68,7 +69,7 @@ export class RouteComponent extends MapBase implements AfterViewInit, OnDestroy 
   }
 
   composeStartRoutePath(): string {
-    return `'/maps/start-route${this.destinationLatitude},${this.destinationLongitude}'`
+    return `/maps/start-route/${this.destinationLatitude},${this.destinationLongitude}`
   }
 
 }

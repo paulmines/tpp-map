@@ -43,3 +43,10 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
     # Run the below scrip to deploy in Github page.
     sudo npm run deploy
 ```
+
+## npm install connflict (Fix the upstream dependency conflict, or retry)
+```bash
+    # Run the below scrip to fix install dependency issues
+    # (removed) sudo npm audit fix —force
+    sudo npm install --legacy-peer-deps
+```

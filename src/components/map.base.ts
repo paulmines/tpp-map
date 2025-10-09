@@ -2,29 +2,52 @@ import { ElementRef, ViewChild, Injectable, OnDestroy, AfterViewInit } from '@an
 import { Map as LeafletMap, LatLngBounds, LayerGroup, latLngBounds, tileLayer, layerGroup, Marker, latLng, Icon, marker, circleMarker, CircleMarker } from 'leaflet';
 import { MapConfigService } from '../services/map-config.service';
 import { LocationService } from '../services/location.service';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject } from 'rxjs';
 import * as L from 'leaflet';
 import 'leaflet-routing-machine';
+
+// Declare Leaflet Routing interface for TypeScript
+declare global {
+  interface Window {
+    L: any;
+  }
+}
+
+declare module 'leaflet' {
+  namespace Routing {
+    function control(options?: any): any;
+    function osrmv1(options?: any): any;
+  }
+}
 
 @Injectable()
 export abstract class MapBase implements OnDestroy {
   protected map!: LeafletMap;
   protected markerLayer!: LayerGroup;
   protected mapElement!: ElementRef;
-//   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
-    // mapContainer!: ElementRef;
   protected locationSubscription?: Subscription;
   protected currentMarker?: Marker | CircleMarker;
   private pulseAnimation?: number;
   private pulseMarker?: CircleMarker;
   private routingControl: any; // Store the routing control instance
+  
+  // Observable GPS waypoint
+  protected gpsWaypointSubscription?: Subscription;
   private gpsWaypoint: L.LatLng = L.latLng(14.078302653244693, 121.1424087146165);
+  private gpsWaypointSubject = new Subject<L.LatLng>();
+  public gpsWaypoint$ = this.gpsWaypointSubject.asObservable();
+
   private destinationWaypoint: L.LatLng = L.latLng(14.073384687936823, 121.14390748782859);
 
   constructor(
     protected mapConfig: MapConfigService,
     protected locationService: LocationService
   ) {
+
+   // Subscribe to GPS waypoint changes
+    this.gpsWaypointSubscription = this.gpsWaypoint$.subscribe((position) => {
+      this.onGpsWaypointChange(position);
+    });
   } 
 
   ngOnDestroy(): void {
@@ -32,8 +55,14 @@ export abstract class MapBase implements OnDestroy {
     if (this.locationSubscription) {
       this.locationSubscription.unsubscribe();
     }
+    if (this.routingControl) {
+      this.map.removeControl(this.routingControl);
+    }
     if (this.map) {
       this.map.remove();
+    }
+    if (this.gpsWaypointSubscription) {
+      this.gpsWaypointSubscription.unsubscribe();
     }
   }
 
@@ -65,21 +94,20 @@ export abstract class MapBase implements OnDestroy {
         const positionLatLng = latLng(position.coords.latitude, position.coords.longitude);
         console.log("Current Location:", positionLatLng);
         
+        // removed because it was automatically happend with gpsWaypoint observable implementation
         // Remove existing marker if any
-        if (this.currentMarker) {
-          this.getMarkerLayer().removeLayer(this.currentMarker);
-        }
-
+        // if (this.currentMarker) {
+        //   this.getMarkerLayer().removeLayer(this.currentMarker);
+        // }
         // Add marker with popup
-        this.addMarker(
-          position.coords.latitude,
-          position.coords.longitude,
-          "<b>You're Here!</b>"
-        );
+        // this.addMarker(
+        //   position.coords.latitude,
+        //   position.coords.longitude,
+        //   "<b>You're Here!</b>"
+        // );
 
         // update local variable with current user coordinates
         this.setCurrentCoordinates(position.coords.latitude, position.coords.longitude);
-
       },
       error: (error) => {
         console.error('Error getting location:', error);
@@ -96,17 +124,20 @@ export abstract class MapBase implements OnDestroy {
         const positionLatLng = latLng(position.coords.latitude, position.coords.longitude);
         console.log("Current Location:", positionLatLng);
         
+        // removed because it was automatically happend with gpsWaypoint observable implementation
         // Remove existing marker if any
-        if (this.currentMarker) {
-          this.getMarkerLayer().removeLayer(this.currentMarker);
-        }
-
+        // if (this.currentMarker) {
+        //   this.getMarkerLayer().removeLayer(this.currentMarker);
+        // }
         // Add marker with popup
-        this.addMarker(
-          position.coords.latitude,
-          position.coords.longitude,
-          "<b>You're Here!</b>"
-        );
+        // this.addMarker(
+        //   position.coords.latitude,
+        //   position.coords.longitude,
+        //   "<b>You're Here!</b>"
+        // );
+
+        // update local variable with current user coordinates
+        this.setCurrentCoordinates(position.coords.latitude, position.coords.longitude);
 
         // Center map on current location
         this.map.setView(positionLatLng, 15);
@@ -120,7 +151,7 @@ export abstract class MapBase implements OnDestroy {
     });
   }
 
-    protected watchStartMovement(): void {
+  protected watchStartMovement(): void {
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(
         (position) => {
@@ -152,6 +183,12 @@ export abstract class MapBase implements OnDestroy {
   }
 
   private addMarker(lat: number, lng: number, popupText: string): void {
+
+    // Remove existing marker if any
+    if (this.currentMarker) {
+      this.getMarkerLayer().removeLayer(this.currentMarker);
+    }
+
     // Clean up previous animation and marker
     if (this.pulseAnimation) {
       cancelAnimationFrame(this.pulseAnimation);
@@ -244,30 +281,51 @@ export abstract class MapBase implements OnDestroy {
     
     redMarkerInstance.bindPopup(popupText);
     this.getMarkerLayer().addLayer(redMarkerInstance);
-    // this.redMarker = redMarkerInstance;
-    
   }
 
   routing(): void {
-
-    if (!L.Routing) {
-      console.error('Leaflet Routing Machine not loaded');
-      return;
+    // Remove existing routing control if any
+    if (this.routingControl) {
+      this.map.removeControl(this.routingControl);
     }
 
-    this.routingControl = L.Routing.control({
-      waypoints: [
-        this.gpsWaypoint,
-        this.destinationWaypoint,
-      ],
-      routeWhileDragging: false,
-      router: new L.Routing.OSRMv1({
-        // serviceUrl: 'http://127.0.0.1:5001/route/v1',
-        serviceUrl: 'https://router.project-osrm.org/route/v1',
-        profile: 'car'
-      }),
-      show: false, // Do not show the route details
-    }).addTo(this.map);
+    // Check if Routing is available (with retry logic)
+    const initRouting = () => {
+      const leafletObj = (window as any).L || L;
+      
+      if (!leafletObj.Routing || !leafletObj.Routing.control) {
+        console.error('Leaflet Routing Machine not loaded yet');
+        // Retry after a short delay
+        setTimeout(initRouting, 100);
+        return;
+      }
+
+      try {
+        this.routingControl = leafletObj.Routing.control({
+          waypoints: [
+            this.gpsWaypoint,
+            this.destinationWaypoint,
+          ],
+          routeWhileDragging: false,
+          router: leafletObj.Routing.osrmv1({
+            serviceUrl: 'https://router.project-osrm.org/route/v1',
+            profile: 'car'
+          }),
+          show: false,
+          addWaypoints: false,
+          draggableWaypoints: false,
+          fitSelectedRoutes: false,
+          showAlternatives: false,
+          createMarker: function() { return null; } // Hide waypoint markers
+        }).addTo(this.map);
+        
+        console.log('Routing initialized successfully');
+      } catch (error) {
+        console.error('Error initializing routing:', error);
+      }
+    };
+
+    initRouting();
   }
 
   private calculateAngleToWaypoint(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -291,6 +349,18 @@ export abstract class MapBase implements OnDestroy {
     this.getMap().scrollWheelZoom.disable();
     this.getMap().boxZoom.disable();
     this.getMap().zoomControl.remove();
+  }
+
+  // Handler for GPS waypoint changes
+  private onGpsWaypointChange(position: L.LatLng): void {
+    console.log('GPS Waypoint changed:', position);
+    
+    // Add marker with popup at the new position
+    this.addMarker(
+      position.lat,
+      position.lng,
+      "<b>You're Here!</b>"
+    );
   }
 
   protected getMinZoom(): number {
@@ -348,6 +418,9 @@ export abstract class MapBase implements OnDestroy {
 
   private setCurrentCoordinates(lat: number, lng: number): void {
     this.gpsWaypoint = L.latLng(lat, lng);
+
+    // Emit the new waypoint to trigger the observable
+    this.gpsWaypointSubject.next(this.gpsWaypoint);
   }
 
   protected setDestinationCoordinates(lat: number, lng: number): void {
@@ -357,5 +430,4 @@ export abstract class MapBase implements OnDestroy {
   public getDefaultStartZoomLevel(): number {
     return this.mapConfig.getDefaultStartZoomLevel();
   }
-  
-} 
+}

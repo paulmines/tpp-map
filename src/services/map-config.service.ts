@@ -48,6 +48,6 @@ export class MapConfigService {
   }
 
   getDefaultStartZoomLevel(): number {
-    return this.maxZoom;
+    return this.maxZoom - 2;
   }
 } 
