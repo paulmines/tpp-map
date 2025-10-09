@@ -338,7 +338,11 @@ export abstract class MapBase implements OnDestroy {
 
   private rotateMap(angle: number): void {
     const mapContainer = this.mapElement.nativeElement;
-    mapContainer.style.transform = `rotate(${-angle}deg)`;
+    // Calculate scale factor to ensure full screen coverage during rotation
+    // Using diagonal length / side length formula: scale = sqrt(2) ≈ 1.42
+    const scaleFactor = Math.sqrt(2);
+    mapContainer.style.transform = `rotate(${-angle}deg) scale(${scaleFactor})`;
+    // mapContainer.style.transformOrigin = 'center center';
   }
 
   protected disableInteractions(): void {
