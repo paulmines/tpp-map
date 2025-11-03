@@ -28,7 +28,7 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 
 ## Run in local
 ```bash
-    sudo npm sttart
+    sudo npm start
 ```
 
 ## Github page's deployment guidelines.

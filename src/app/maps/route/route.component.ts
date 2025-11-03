@@ -57,6 +57,7 @@ export class RouteComponent extends MapBase implements AfterViewInit, OnDestroy 
     // Add your button click logic here
     console.log('Destination clicked!');
     // Example: Open navigation app, show route, etc.
+    this.setRoutingEnabled(true);
     this.routing();
     this.showStartButton = true;
   }
